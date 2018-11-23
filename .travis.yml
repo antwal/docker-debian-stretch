@@ -1,22 +1,15 @@
-# make use of vm's 
-sudo: 'required'
+sudo: required
 
-# have the docker service set up (we'll
-# update it later)
 services:
-  - 'docker'
+  - docker
 
-# prepare the machine before any code
-# installation scripts
 before_install:
-  - './.travis/main.sh'
+  - chmod a+x ./.travis/main.sh
+  - ./.travis/main.sh
 
-# first execute the test suite.
-# after the test execution is done and didn't
-# fail, build the images (if this step fails
-# the whole Travis build is considered a failure).
 script:
-  - './build.sh'
+  - chmod a+x ./build.sh
+  - ./build.sh
 
 # only execute the following instructions in
 # the case of a success (failing at this point

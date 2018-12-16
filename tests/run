@@ -1,0 +1,129 @@
+#!/bin/bash
+# See: https://github.com/kward/shunit2
+
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
+if [ $UID != 0 ] && ! groups | grep -qw docker; then
+    echo "Run with sudo/root or add user $USER to group 'docker'"
+    exit 1
+fi
+
+argBuild=${1:-"build"}
+argOutput=${2:-"quiet"}
+argCleanup=${3:-"cleanup"}
+
+# FIXED: Working on Unix / Darwin
+argOwner=${owner:-"$(id -u -n):$(id -g -n)"}
+
+testDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+buildDir="${buildDir:-"$(pwd)"}"
+imageName="${imageName:-"none"}"
+
+buildOptions=(--tag "$imageName")
+
+if [ "$argOutput" == "quiet" ]; then
+    redirect="/dev/null"
+else
+    redirect="/dev/stdout"
+fi
+
+if [ ! -f "$testDir/shunit2/shunit2" ]; then
+    echo "Could not find shunit2 in $testDir/shunit2."
+    echo "Run 'git submodules init && git submodules update'"
+    exit 2
+fi
+
+echo -e "${PURPLE}DEBUG${NC} -> Arguments:"
+echo $argBuild $argOutput $argCleanup $argOwner $buildDir $imageName $testDir
+
+# clear argument list (or shunit2 will try to use them)
+set --
+
+##############################################################################
+## Helper functions
+##############################################################################
+
+function oneTimeSetUp() {
+    echo -e "${PURPLE}DEBUG${NC} -> oneTimeSetUp"
+    if [ "$argBuild" == "build" ]; then
+        buildOptions+=("--no-cache" "--pull=true")
+    fi
+
+    # Build image
+    if ! docker build "${buildOptions[@]}" "$buildDir"; then
+        echo "Build failed"
+        exit 1
+    fi
+}
+
+function oneTimeTearDown() {
+    echo -e "${PURPLE}DEBUG${NC} -> oneTimeTearDown"
+    if [ "$argCleanup" == "cleanup" ]; then
+        echo "Remove image"
+        docker image rm "$imageName" > "$redirect" 2>&1
+    fi
+}
+
+function tearDown() {
+    echo -e "${PURPLE}DEBUG${NC} -> tearDown"
+    retireContainer "$containerName"
+
+    if [ "$argCleanup" == "cleanup" ] && [ -d "$containerTmpDir" ]; then
+        echo "Remove build test directory : $containerTmpDir"
+        rm -rf "$containerTmpDir"
+    fi
+}
+
+function retireContainer() {
+    echo -e "${PURPLE}DEBUG${NC} -> retireContainer"
+    if [ "$(docker ps -qaf name="$1")" ]; then
+        if [ "$argOutput" != "quiet" ]; then
+            echo "Docker log for $1:"
+            docker logs "$1"
+        fi
+
+        if [ "$argCleanup" == "cleanup" ]; then
+            docker rm -fv "$1" > "$redirect" 2>&1
+        fi
+    fi
+}
+
+function setUp() {
+    echo -e "${PURPLE}DEBUG${NC} -> setUp"
+    # shellcheck disable=SC2154
+    containerName="${_shunit_test_}"
+    mkdir -p "${buildDir}/build/${containerName}"
+    containerTmpDir="${buildDir}/build/${containerName}"
+    chown "$argOwner" "$containerTmpDir"
+    export containerName containerTmpDir
+
+    retireContainer "$containerName" # clean up leftover container
+}
+
+function suite() {
+    echo -e "${PURPLE}DEBUG${NC} -> suite"
+    if [ -f "$testDir/$buildDir.sh" ]; then
+        echo "Include all tests unit for $buildDir"
+        . "$testDir/$buildDir.sh"
+    else
+        echo "No tests file for $buildDir"
+    fi
+}
+
+##############################################################################
+## Commons Tests
+##############################################################################
+
+function testCommonPass() {
+    echo "Common Passed Test"
+}
+
+##############################################################################
+## Run
+##############################################################################
+
+# shellcheck disable=SC1090
+source "$testDir/shunit2/shunit2"
+# Nothing happens after this

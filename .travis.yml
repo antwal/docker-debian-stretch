@@ -4,12 +4,12 @@ services:
   - docker
 
 before_install:
-  - chmod a+x ./.travis/main.sh
-  - ./.travis/main.sh
+  - chmod a+x ./.travis/before_install.sh
+  - ./.travis/before_install.sh
 
 script:
-  - chmod a+x ./build.sh
-  - ./build.sh
+  - chmod a+x ./.travis/build.sh
+  - ./.travis/build.sh
 
 # only execute the following instructions in
 # the case of a success (failing at this point

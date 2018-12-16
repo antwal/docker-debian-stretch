@@ -104,9 +104,9 @@ function setUp() {
 
 function suite() {
     echo -e "${PURPLE}DEBUG${NC} -> suite"
-    if [ -f "$testDir/$buildDir.sh" ]; then
+    if [ -f "$testDir/files/$buildDir.sh" ]; then
         echo "Include all tests unit for $buildDir"
-        . "$testDir/$buildDir.sh"
+        . "$testDir/files/$buildDir.sh"
     else
         echo "No tests file for $buildDir"
     fi

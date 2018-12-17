@@ -110,6 +110,8 @@ function suite() {
     else
         echo "No tests file for $buildDir"
     fi
+
+    testCommonPass
 }
 
 ##############################################################################

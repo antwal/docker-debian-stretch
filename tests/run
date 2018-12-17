@@ -1,7 +1,7 @@
 #!/bin/bash
 # See: https://github.com/kward/shunit2
 
-PURPLE='\033[0;35m'
+COLOR='\033[1;34m'
 NC='\033[0m'
 
 if [ $UID != 0 ] && ! groups | grep -qw docker; then
@@ -23,6 +23,8 @@ imageName="${imageName:-"none"}"
 
 buildOptions=(--tag "$imageName")
 
+useTmp=1
+
 if [ "$argOutput" == "quiet" ]; then
     redirect="/dev/null"
 else
@@ -35,9 +37,6 @@ if [ ! -f "$testDir/shunit2/shunit2" ]; then
     exit 2
 fi
 
-# echo -e "${PURPLE}DEBUG${NC} -> Arguments:"
-# echo $argBuild $argOutput $argCleanup $argOwner $buildDir $imageName $testDir
-
 # clear argument list (or shunit2 will try to use them)
 set --
 
@@ -46,7 +45,8 @@ set --
 ##############################################################################
 
 function oneTimeSetUp() {
-    # echo -e "${PURPLE}DEBUG${NC} -> oneTimeSetUp"
+    echo -e "${COLOR}function oneTimeSetUp()${NC}" > "$redirect" 2>&1
+
     if [ "$argBuild" == "build" ]; then
         buildOptions+=("--no-cache" "--pull=true")
     fi
@@ -59,25 +59,27 @@ function oneTimeSetUp() {
 }
 
 function oneTimeTearDown() {
-    # echo -e "${PURPLE}DEBUG${NC} -> oneTimeTearDown"
+    echo -e "${COLOR}function oneTimeTearDown()${NC}" > "$redirect" 2>&1
+
     if [ "$argCleanup" == "cleanup" ]; then
-        # echo "Remove image"
+        echo "Remove image" > "$redirect" 2>&1
         docker image rm "$imageName" > "$redirect" 2>&1
     fi
 }
 
 function tearDown() {
-    # echo -e "${PURPLE}DEBUG${NC} -> tearDown"
+    echo -e "${COLOR}function tearDown()${NC}" > "$redirect" 2>&1
+
     retireContainer "$containerName"
 
     if [ "$argCleanup" == "cleanup" ] && [ -d "$containerTmpDir" ]; then
-        # echo "Remove build test directory : $containerTmpDir"
+        echo "Remove build test directory : $containerTmpDir" > "$redirect" 2>&1
         rm -rf "$containerTmpDir"
     fi
 }
 
 function runContainer() {
-    # echo -e "${PURPLE}DEBUG${NC} -> runContainer"
+    echo -e "${COLOR}function runContainer()${NC}" > "$redirect" 2>&1
 
     runOptions="$@"
 
@@ -90,7 +92,8 @@ function runContainer() {
 }
 
 function retireContainer() {
-    # echo -e "${PURPLE}DEBUG${NC} -> retireContainer"
+    echo -e "${COLOR}function retireContainer()${NC}" > "$redirect" 2>&1
+
     if [ "$(docker ps -qaf name="$1")" ]; then
         if [ "$argOutput" != "quiet" ]; then
             echo "Docker log for $1:"
@@ -104,36 +107,48 @@ function retireContainer() {
 }
 
 function setUp() {
-    # echo -e "${PURPLE}DEBUG${NC} -> setUp"
+    echo -e "${COLOR}function setUp()${NC}" > "$redirect" 2>&1
+
     # shellcheck disable=SC2154
     containerName="${_shunit_test_}"
-    mkdir -p "${buildDir}/build/${containerName}"
     containerTmpDir="${buildDir}/build/${containerName}"
-    chown "$argOwner" "$containerTmpDir"
+
+    useTmp=${mkTmp:-$useTmp}
+
+    if [ "${useTmp}" -eq "${SHUNIT_TRUE}" ]; then
+        echo "Use Temp Folder for $containerName" > "$redirect" 2>&1
+
+        mkdir -p "${buildDir}/build/${containerName}"
+        # set permission to non root user if passed
+        chown -R "$argOwner" "${buildDir}/build/"
+    fi
+
     export containerName containerTmpDir
 
     retireContainer "$containerName" # clean up leftover container
 }
 
 function suite() {
-    # echo -e "${PURPLE}DEBUG${NC} -> suite"
+    echo -e "${COLOR}function suite()${NC}" > "$redirect" 2>&1
+
     if [ -f "$testDir/files/$buildDir.sh" ]; then
-        # echo "Include all tests unit for $buildDir"
+        echo "Include all tests unit for $buildDir" > "$redirect" 2>&1
         . "$testDir/files/$buildDir.sh"
     else
-        # echo "No tests file for $buildDir"
-        continue
+        echo "No tests file for $buildDir" > "$redirect" 2>&1
     fi
 
-    suite_addTest testCommonPass
+    suite_addTest testCommonEnd
 }
 
 ##############################################################################
 ## Commons Tests
 ##############################################################################
 
-function testCommonPass() {
-    echo "Pass"
+function testCommonEnd() {
+    echo -e "${COLOR}function testCommonEnd()${NC}" > "$redirect" 2>&1
+
+    echo "Passed" > "$redirect" 2>&1
 }
 
 ##############################################################################

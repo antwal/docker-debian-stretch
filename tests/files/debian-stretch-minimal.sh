@@ -1,11 +1,18 @@
 #!/bin/bash
 
 ##############################################################################
+## Params
+##############################################################################
+
+# Use to 0 - create temps folders for tests
+# mkTmp=0
+
+##############################################################################
 ## Tests
 ##############################################################################
 
 function testCommandInternalSyslog() {
-    # echo -e "${PURPLE}DEBUG${NC} -> $containerName"
+    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 
     params="--name \"$containerName\" \
 --env \"DEBBASE_SYSLOG=internal\" \
@@ -24,7 +31,7 @@ function testCommandInternalSyslog() {
 }
 
 # function testCommandTimezone() {
-#     echo -e "${PURPLE}DEBUG${NC} -> $containerName"
+#     echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 #
 #     docker run --name "$containerName" \
 #         --env "DEBBASE_TIMEZONE=Europe/Rome" \

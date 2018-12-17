@@ -12,7 +12,7 @@ buildImages() {
         if [ -d "$DIR" ] && [ -f "$DIR/Dockerfile" ]; then
             echo "Start build $DIR"
             export currentOwner="$(id -u -n):$(id -g -n)"
-            sudo owner=$currentOwner buildDir="$DIR" imageName="antwal/$DIR:$1" ./tests/run cache logger
+            sudo owner=$currentOwner buildDir="$DIR" imageName="antwal/$DIR:$1" ./tests/run
         else
             echo "No build $DIR"
         fi
@@ -23,4 +23,6 @@ buildImages() {
 buildImages latest
 
 # Remove dangling images
-#docker rmi $(docker images -f "dangling=true" -q)
+if [ "$(docker images -f "dangling=true" -q)" != "" ]; then
+    docker rmi $(docker images -f "dangling=true" -q)
+fi

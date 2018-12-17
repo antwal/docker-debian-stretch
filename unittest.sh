@@ -12,7 +12,7 @@ buildImages() {
         if [ -d "$DIR" ] && [ -f "$DIR/Dockerfile" ]; then
             echo "Start build $DIR"
             export currentOwner="$(id -u -n):$(id -g -n)"
-            sudo owner=$currentOwner buildDir="$DIR" imageName="antwal/$DIR:$1" ./tests/run cache logger noclean
+            sudo owner=$currentOwner buildDir="$DIR" imageName="antwal/$DIR:$1" ./tests/run cache logger
         else
             echo "No build $DIR"
         fi

@@ -35,8 +35,8 @@ if [ ! -f "$testDir/shunit2/shunit2" ]; then
     exit 2
 fi
 
-echo -e "${PURPLE}DEBUG${NC} -> Arguments:"
-echo $argBuild $argOutput $argCleanup $argOwner $buildDir $imageName $testDir
+# echo -e "${PURPLE}DEBUG${NC} -> Arguments:"
+# echo $argBuild $argOutput $argCleanup $argOwner $buildDir $imageName $testDir
 
 # clear argument list (or shunit2 will try to use them)
 set --
@@ -46,7 +46,7 @@ set --
 ##############################################################################
 
 function oneTimeSetUp() {
-    echo -e "${PURPLE}DEBUG${NC} -> oneTimeSetUp"
+    # echo -e "${PURPLE}DEBUG${NC} -> oneTimeSetUp"
     if [ "$argBuild" == "build" ]; then
         buildOptions+=("--no-cache" "--pull=true")
     fi
@@ -59,25 +59,38 @@ function oneTimeSetUp() {
 }
 
 function oneTimeTearDown() {
-    echo -e "${PURPLE}DEBUG${NC} -> oneTimeTearDown"
+    # echo -e "${PURPLE}DEBUG${NC} -> oneTimeTearDown"
     if [ "$argCleanup" == "cleanup" ]; then
-        echo "Remove image"
+        # echo "Remove image"
         docker image rm "$imageName" > "$redirect" 2>&1
     fi
 }
 
 function tearDown() {
-    echo -e "${PURPLE}DEBUG${NC} -> tearDown"
+    # echo -e "${PURPLE}DEBUG${NC} -> tearDown"
     retireContainer "$containerName"
 
     if [ "$argCleanup" == "cleanup" ] && [ -d "$containerTmpDir" ]; then
-        echo "Remove build test directory : $containerTmpDir"
+        # echo "Remove build test directory : $containerTmpDir"
         rm -rf "$containerTmpDir"
     fi
 }
 
+function runContainer() {
+    # echo -e "${PURPLE}DEBUG${NC} -> runContainer"
+
+    runOptions="$@"
+
+    if ! bash -c "docker run $runOptions > $redirect 2>&1"; then
+        echo "Run failed"
+        return 1;
+    fi
+
+    return 0;
+}
+
 function retireContainer() {
-    echo -e "${PURPLE}DEBUG${NC} -> retireContainer"
+    # echo -e "${PURPLE}DEBUG${NC} -> retireContainer"
     if [ "$(docker ps -qaf name="$1")" ]; then
         if [ "$argOutput" != "quiet" ]; then
             echo "Docker log for $1:"
@@ -91,7 +104,7 @@ function retireContainer() {
 }
 
 function setUp() {
-    echo -e "${PURPLE}DEBUG${NC} -> setUp"
+    # echo -e "${PURPLE}DEBUG${NC} -> setUp"
     # shellcheck disable=SC2154
     containerName="${_shunit_test_}"
     mkdir -p "${buildDir}/build/${containerName}"
@@ -103,15 +116,16 @@ function setUp() {
 }
 
 function suite() {
-    echo -e "${PURPLE}DEBUG${NC} -> suite"
+    # echo -e "${PURPLE}DEBUG${NC} -> suite"
     if [ -f "$testDir/files/$buildDir.sh" ]; then
-        echo "Include all tests unit for $buildDir"
+        # echo "Include all tests unit for $buildDir"
         . "$testDir/files/$buildDir.sh"
     else
-        echo "No tests file for $buildDir"
+        # echo "No tests file for $buildDir"
+        continue
     fi
 
-    testCommonPass
+    suite_addTest testCommonPass
 }
 
 ##############################################################################
@@ -119,7 +133,7 @@ function suite() {
 ##############################################################################
 
 function testCommonPass() {
-    echo "Common Passed Test"
+    echo "Pass"
 }
 
 ##############################################################################

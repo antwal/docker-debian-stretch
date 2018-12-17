@@ -4,14 +4,36 @@
 ## Tests
 ##############################################################################
 
-function testRunInternalSyslog() {
-    cid="$(docker run --name "$containerName" \
-        --env "DEBBASE_SYSLOG=internal" \
-        --entrypoint="/usr/local/bin/boot-debian-base" \
-        --detach "$imageName")"
-    assertTrue "Run with Internal Syslog" $?
+function testCommandInternalSyslog() {
+    # echo -e "${PURPLE}DEBUG${NC} -> $containerName"
 
+    params="--name \"$containerName\" \
+--env \"DEBBASE_SYSLOG=internal\" \
+--entrypoint=\"/usr/local/bin/boot-debian-base\" \
+--detach \"$imageName\""
 
+    runContainer "$params"
+    assertTrue "runContainer" $?
+
+    check="$(docker exec $containerName \
+        bash -c "cat /etc/syslog.conf")"
+
+    echo $check | grep '/var/log' >/dev/null
+    rtrn=$?
+    assertTrue "Command Internal Syslog" ${rtrn}
 }
 
-suite_addTest testRunInternalSyslog
+# function testCommandTimezone() {
+#     echo -e "${PURPLE}DEBUG${NC} -> $containerName"
+#
+#     docker run --name "$containerName" \
+#         --env "DEBBASE_TIMEZONE=Europe/Rome" \
+#         --entrypoint="/usr/local/bin/boot-debian-base" \
+#         --detach "$imageName" \
+#         > "$redirect" 2>&1
+#
+#
+# }
+
+suite_addTest testCommandInternalSyslog
+#suite_addTest testCommandTimezone

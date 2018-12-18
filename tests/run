@@ -56,6 +56,8 @@ function oneTimeSetUp() {
         echo "Build failed"
         exit 1
     fi
+
+    # docker image inspect antwal/debian-stretch-sftp:latest --format='{{.Size}}'
 }
 
 function oneTimeTearDown() {

@@ -1,4 +1,4 @@
-# Generate and encrypt passwords
+# Debian 9.x - Generate and encrypt passwords (makepasswd)
 
 Generates true random passwords using /dev/urandom, with the emphasis on security over pronounceability. It can also encrypt plaintext passwords given in a temporary file.
 

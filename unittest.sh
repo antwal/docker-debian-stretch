@@ -2,13 +2,15 @@
 
 set -e
 
+# TODO: Need add push image to docker
+
 chmod a+x ./submodules.sh
 ./submodules.sh
 
 chmod a+x ./tests/run
 
 buildImages() {
-    for DIR in debian-stretch-{minimal,standard}; do
+    for DIR in debian-stretch-*; do
         if [ -d "$DIR" ] && [ -f "$DIR/Dockerfile" ]; then
             echo "Start build $DIR:$1"
             export currentOwner="$(id -u -n):$(id -g -n)"

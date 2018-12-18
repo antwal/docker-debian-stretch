@@ -2,6 +2,8 @@ FROM debian:stretch
 
 MAINTAINER Walter Antolini <antwal@gmail.com>
 
+# TODO: Need custom script for tools
+
 # We have to use sysvinit because Docker doesn't support cgroups.
 # See http://without-systemd.org/wiki/index.php/Debian_Stretch
 # Concepts from https://github.com/phusion/baseimage-docker

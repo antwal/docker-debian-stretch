@@ -5,7 +5,7 @@ set -x
 
 buildbranch() {
         git checkout $1
-        for DIR in debian-stretch-{minimal,standard}; do
+        for DIR in debian-stretch-{minimal,makepasswd,openssh}; do
                 cd $DIR
                 docker build -t antwal/$DIR:$2 .
                 cd ..

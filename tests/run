@@ -133,9 +133,9 @@ function setUp() {
 function suite() {
     echo -e "${COLOR}function suite()${NC}" > "$redirect" 2>&1
 
-    if [ -f "$testDir/files/$buildDir.sh" ]; then
+    if [ -f "$testDir/units/$buildDir.sh" ]; then
         echo "Include all tests unit for $buildDir" > "$redirect" 2>&1
-        . "$testDir/files/$buildDir.sh"
+        . "$testDir/units/$buildDir.sh"
     else
         echo "No tests file for $buildDir" > "$redirect" 2>&1
     fi

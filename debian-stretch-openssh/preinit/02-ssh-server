@@ -2,8 +2,8 @@
 set -Eeo pipefail
 #set -x
 
-# TODO: Need SSH Server with Password or PEM
-# TODO: Need Allow/Disallow Root login
+# TODO: SSH Server with Password or PEM
+# TODO: Allow/Disallow Root login
 
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
@@ -24,13 +24,6 @@ if [ "$DEBBASE_SSH" = "enabled" ]; then
 
         COPY sshd_config /etc/ssh/sshd_config
         COPY ssh_config /etc/ssh/ssh_config
-
-        # sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
-        # sed -i 's/#HostKey \/etc\/ssh\/ssh_host_rsa_key/HostKey \/etc\/ssh\/ssh_host_rsa_key/' /etc/ssh/sshd_config
-        # sed -i 's/#HostKey \/etc\/ssh\/ssh_host_ed25519_key/HostKey \/etc\/ssh\/ssh_host_ed25519_key/' /etc/ssh/sshd_config
-        # #sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-        # sed -i 's/#PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
-        # sed -i 's/#ChrootDirectory none/ChrootDirectory %h/' /etc/ssh/sshd_config
 
         # SSH login fix. Otherwise user is kicked off after login
         #sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd

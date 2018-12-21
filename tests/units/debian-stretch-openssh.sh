@@ -11,12 +11,19 @@ mkTmp=0
 ## Helper functions
 ##############################################################################
 
-function getSftpIp() {
-    docker inspect -f "{{.NetworkSettings.IPAddress}}" "$1"
+function generateRSA() {
+    # Generate temporary ssh keys for testing
+    if [ ! -f "${buildDir}/build/test_rsa" ]; then
+        ssh-keygen -t rsa -f "${buildDir}/build/test_rsa" -N '' > "$redirect" 2>&1
+    fi
+
+    # Private key can not be read by others (sshd will complain)
+    chmod go-rw "${buildDir}/build/test_rsa"
 }
 
 function runSftpCommands() {
-    ip="$(getSftpIp "$1")"
+    ip="$(getContainerIp "$1")"
+
     user="$2"
     shift 2
 
@@ -26,7 +33,7 @@ function runSftpCommands() {
     done
 
     echo "$commands" | sftp \
-        -i "/tmp/atmoz_sftp_test_rsa" \
+        -i "${buildDir}/build/test_rsa" \
         -oStrictHostKeyChecking=no \
         -oUserKnownHostsFile=/dev/null \
         -b - "$user@$ip" \
@@ -34,74 +41,92 @@ function runSftpCommands() {
 
     status=$?
     sleep 1 # wait for commands to finish
+
     return $status
-}
-
-function waitForServer() {
-    containerName="$1"
-    echo -n "Waiting for $containerName to open port 22 ..."
-
-    for _ in {1..30}; do
-        sleep 1
-        ip="$(getSftpIp "$containerName")"
-        echo -n "."
-        if [ -n "$ip" ] && nc -z "$ip" 22; then
-            echo " OPEN"
-            return 0;
-        fi
-    done
-
-    echo " TIMEOUT"
-    return 1
 }
 
 ##############################################################################
 ## Tests
 ##############################################################################
 
-function testCommandInternalSyslog() {
+function testRunContainer() {
     echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 
-    params="--name \"$containerName\" \
---env \"DEBBASE_SYSLOG=internal\" \
---entrypoint=\"/usr/local/bin/boot-debian-base\" \
---detach \"$imageName\""
+    params="-i --name \"$containerName\" \
+-d \"$imageName\""
 
     runContainer "$params"
     assertTrue "runContainer" $?
 
-    check="$(docker exec $containerName \
-        bash -c "cat /etc/syslog.conf")"
+    logs="$(docker logs $containerName)"
 
-    echo $check | grep '/var/log' >/dev/null
-    rtrn=$?
-    assertTrue "Command Internal Syslog" ${rtrn}
+    echo "$logs" | grep "SSH server disabled;"
+    assertTrue "SSH Disabled" $?
 }
 
-function testCommandTimezone() {
+function testListenSSH() {
     echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 
-    params="--name \"$containerName\" \
---env \"DEBBASE_TIMEZONE=Europe/Rome\" \
---entrypoint=\"/usr/local/bin/boot-debian-base\" \
---detach \"$imageName\""
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+        -d "$imageName" > "$redirect" 2>&1
+
+    waitForServer "$containerName" "2022"
+    assertTrue "waitForServer" $?
+}
+
+function testUsersConf() {
+    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+
+    params="--name \"$containerName\" --env \"DEBBASE_SSH=enabled\" \
+-p 2022:22 -v \"$testDir/files/users.conf:/etc/openssh/users.conf:ro\" \
+-d \"$imageName\""
 
     runContainer "$params"
     assertTrue "runContainer" $?
 
-    check="$(docker exec $containerName \
-        bash -c "cat /etc/timezone")"
+    # docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+    #     -v "$testDir/files/users.conf:/etc/openssh/users.conf:ro" \
+    #     -d "$imageName" > "$redirect" 2>&1
 
-    echo $check | grep 'Europe/Rome' >/dev/null
-    rtrn=$?
-    assertTrue "Command Timezone" ${rtrn}
+    waitForServer "$containerName" "2022"
+    assertTrue "waitForServer" $?
+
+    docker exec "$containerName" id user1 > /dev/null
+    assertTrue "user1" $?
+
+    id="$(docker exec "$containerName" id user5)"
+
+    echo "$id" | grep -q 'uid=9550('
+    assertTrue "custom UID" $?
+
+    echo "$id" | grep -q 'gid=65534('
+    assertTrue "custom GID" $?
+
+    assertEquals "uid=9550(user5) gid=65534(nogroup) groups=65534(nogroup)" "$id"
 }
 
-#function testComposeImageTimezone {
-    # docker-compose -f tests/docker/debian-stretch-minimal-image.yml up -d --build
-    # docker exec testComposeImageTimezone bash -c "cat /etc/timezone"
-    # docker exec -it testComposeImageTimezone /bin/bash
-#}
+function testCommandCreateUsers() {
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+        -d "$imageName" > "$redirect" 2>&1
 
-suite_addTest testCommandInternalSyslog
-suite_addTest testCommandTimezone
+    waitForServer "$containerName" "2022"
+    assertTrue "waitForServer" $?
+
+    docker exec "$containerName" create-ssh-user "create1:" > /dev/null
+    assertTrue "user created" $?
+
+    docker exec "$containerName" id create12414 > /dev/null
+    assertTrue "check user created" $?
+}
+
+# function testEnvCreateUsers() {
+#
+# }
+#
+# function testBindMountDirScript() {
+#
+# }
+
+suite_addTest testRunContainer
+suite_addTest testListenSSH
+suite_addTest testUsersConf

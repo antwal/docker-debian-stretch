@@ -7,7 +7,7 @@
 function testCommandCheckEntrypoint() {
     echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 
-    docker run -i --nane "$containerName" "$imageName" | grep 'makepasswd v' \
+    docker run -i --name "$containerName" "$imageName" --help | grep 'makepasswd v' \
         > "$redirect" 2>&1
     rtrn=$?
     assertTrue "Command Check Entrypoint" ${rtrn}
@@ -16,7 +16,7 @@ function testCommandCheckEntrypoint() {
 function testCommandGeneratePassword() {
     echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
 
-    echo -n "test-password" | docker run -i --nane "$containerName" \
+    echo -n "test-password" | docker run -i --name "$containerName" \
         "$imageName" --crypt-md5 --clearfrom=- | awk '{print $2}' \
         > "$redirect" 2>&1
     rtrn=$?

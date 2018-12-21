@@ -8,6 +8,9 @@ set -Eeo pipefail
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
+reArgsMaybe="^[^:[:space:]]+:.*$" # Smallest indication of attempt to use argument
+reArgSkip='^([[:blank:]]*#.*|[[:blank:]]*)$' # comment or empty line
+
 function log() {
     echo "[$0] $*" >&2
 }
@@ -44,9 +47,9 @@ if [ "$DEBBASE_SSH" = "enabled" ]; then
         startSshd=true
 
         # Paths
-        userConfPath="/etc/ssh-ext/users.conf"
-        userConfPathLegacy="/etc/ssh-users.conf"
-        userConfFinalPath="/var/run/ssh-ext/users.conf"
+        userConfPath="/etc/openssh/users.conf"
+        userConfPathLegacy="/etc/docker-users.conf"
+        userConfFinalPath="/var/run/ssh-docker/users.conf"
 
         # Backward compatibility with legacy config path
         if [ ! -f "$userConfPath" ] && [ -f "$userConfPathLegacy" ]; then

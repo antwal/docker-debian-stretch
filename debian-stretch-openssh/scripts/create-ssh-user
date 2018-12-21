@@ -1,6 +1,9 @@
 #!/bin/bash
 set -Eeo pipefail
 
+# TODO: Fix user custom folder and shell
+# TODO: Add custom certificate
+
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 

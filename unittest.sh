@@ -3,14 +3,19 @@
 set -e
 
 # TODO: Need add push image to docker
+# TODO: Fix args for travis / local / debug build
+
+currentDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 chmod a+x ./submodules.sh
-./submodules.sh
-
 chmod a+x ./tests/run
 
+if [ ! -f "$currentDir/tests/shunit2/shunit2" ]; then
+    ./submodules.sh
+fi
+
 buildImages() {
-    for DIR in debian-stretch-*; do
+    for DIR in debian-stretch-{minimal,makepasswd,openssh}; do
         if [ -d "$DIR" ] && [ -f "$DIR/Dockerfile" ]; then
             echo "Start build $DIR:$1"
             export currentOwner="$(id -u -n):$(id -g -n)"

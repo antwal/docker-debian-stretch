@@ -31,6 +31,17 @@ else
     redirect="/dev/stdout"
 fi
 
+kernel=$(uname)
+
+if [ $kernel == "Darwin" ]; then
+    echo "MacOS System detected"
+else
+    echo "Linux System detected"
+fi
+
+# TODO: check ssh-keygen
+# TODO: print bash & docker version
+
 if [ ! -f "$testDir/shunit2/shunit2" ]; then
     echo "Could not find shunit2 in $testDir/shunit2."
     echo "Run 'git submodules init && git submodules update'"
@@ -57,7 +68,7 @@ function oneTimeSetUp() {
         exit 1
     fi
 
-    # docker image inspect antwal/debian-stretch-sftp:latest --format='{{.Size}}'
+    # docker image inspect antwal/debian-stretch-*:latest --format='{{.Size}}'
 }
 
 function oneTimeTearDown() {
@@ -91,6 +102,40 @@ function runContainer() {
     fi
 
     return 0;
+}
+
+function getContainerIp() {
+    docker inspect -f "{{.NetworkSettings.IPAddress}}" "$1"
+}
+
+function waitForServer() {
+    echo -e "${COLOR}function waitForServer()${NC}" > "$redirect" 2>&1
+
+    containerName="$1"
+    port="$2"
+    ip=""
+
+    echo -n "Waiting for $containerName to open port $port ..." > "$redirect" 2>&1
+
+    for _ in {1..30}; do
+        sleep 1
+
+        if [ $kernel == "Darwin" ]; then
+            # FIXED: MacOs can't connect directly to container host
+            ip="0.0.0.0"
+        else
+            ip="$(getContainerIp "$containerName")"
+        fi
+
+        echo -n "."
+        if [ -n "$ip" ] && nc -z "$ip" $port; then
+            echo " OPEN"
+            return 0;
+        fi
+    done
+
+    echo " TIMEOUT"
+    return 1
 }
 
 function retireContainer() {

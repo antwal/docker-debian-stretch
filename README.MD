@@ -7,7 +7,6 @@
 
 - docker pull antwal/debian-stretch-minimal
 
-## Debian Stretch Standard [![](https://img.shields.io/docker/build/antwal/debian-stretch-standard.svg)](https://hub.docker.com/r/antwal/debian-stretch-standard/builds/)
+## Debian Stretch OpenSSH (SSH + SFTP) [![](https://img.shields.io/docker/build/antwal/debian-stretch-openssh.svg)](https://hub.docker.com/r/antwal/debian-stretch-openssh/builds/)
 
-- docker pull antwal/debian-stretch-standard
-
+- docker pull antwal/debian-stretch-openssh

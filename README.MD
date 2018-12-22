@@ -7,6 +7,10 @@
 
 - docker pull antwal/debian-stretch-minimal
 
+## Debian Stretch Makepasswd [![](https://img.shields.io/docker/build/antwal/debian-stretch-makepasswd.svg)](https://hub.docker.com/r/antwal/debian-stretch-makepasswd/builds/)
+
+- docker pull antwal/debian-stretch-makepasswd
+
 ## Debian Stretch OpenSSH (SSH + SFTP) [![](https://img.shields.io/docker/build/antwal/debian-stretch-openssh.svg)](https://hub.docker.com/r/antwal/debian-stretch-openssh/builds/)
 
 - docker pull antwal/debian-stretch-openssh

@@ -4,7 +4,7 @@
 ## Params
 ##############################################################################
 
-# Use to 0 - create temps folders for tests
+# 0 - create temps folders for tests - comment for disable
 mkTmp=0
 
 ##############################################################################
@@ -106,6 +106,8 @@ function testUsersConf() {
 }
 
 function testCommandCreateUsers() {
+    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+
     docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
         -d "$imageName" > "$redirect" 2>&1
 
@@ -124,6 +126,10 @@ function testCommandCreateUsers() {
 # }
 #
 # function testBindMountDirScript() {
+#
+# }
+#
+# function testSFTPServer() {
 #
 # }
 

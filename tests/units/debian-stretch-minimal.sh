@@ -1,13 +1,6 @@
 #!/bin/bash
 
 ##############################################################################
-## Params
-##############################################################################
-
-# Use to 0 - create temps folders for tests
-# mkTmp=0
-
-##############################################################################
 ## Tests
 ##############################################################################
 
@@ -48,12 +41,6 @@ function testCommandTimezone() {
     rtrn=$?
     assertTrue "Command Timezone" ${rtrn}
 }
-
-#function testComposeImageTimezone {
-    # docker-compose -f tests/docker/debian-stretch-minimal-image.yml up -d --build
-    # docker exec testComposeImageTimezone bash -c "cat /etc/timezone"
-    # docker exec -it testComposeImageTimezone /bin/bash
-#}
 
 suite_addTest testCommandInternalSyslog
 suite_addTest testCommandTimezone

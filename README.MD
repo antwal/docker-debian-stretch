@@ -1,16 +1,18 @@
+# Docker Images - Debian Stretch 9.x
 [![Build Status](https://travis-ci.org/antwal/docker-debian-stretch.svg?branch=master)](https://travis-ci.org/antwal/docker-debian-stretch)
 
-# Docker Images - Debian Stretch 9.x
 
-
-## Debian Stretch Minimal [![](https://img.shields.io/docker/build/antwal/debian-stretch-minimal.svg)](https://hub.docker.com/r/antwal/debian-stretch-minimal/builds/)
+## Debian Stretch Minimal
+[![Size](https://shields.beevelop.com/docker/image/image-size/antwal/debian-stretch-minimal/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-minimal/)
 
 - docker pull antwal/debian-stretch-minimal
 
-## Debian Stretch Makepasswd [![](https://img.shields.io/docker/build/antwal/debian-stretch-makepasswd.svg)](https://hub.docker.com/r/antwal/debian-stretch-makepasswd/builds/)
+## Debian Stretch Makepasswd
+[![Size](https://shields.beevelop.com/docker/image/image-size/antwal/debian-stretch-makepasswd/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-makepasswd/)
 
 - docker pull antwal/debian-stretch-makepasswd
 
-## Debian Stretch OpenSSH (SSH + SFTP) [![](https://img.shields.io/docker/build/antwal/debian-stretch-openssh.svg)](https://hub.docker.com/r/antwal/debian-stretch-openssh/builds/)
+## Debian Stretch OpenSSH (SSH + SFTP)
+[![Size](https://shields.beevelop.com/docker/image/image-size/antwal/debian-stretch-openssh/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-openssh/)
 
 - docker pull antwal/debian-stretch-openssh

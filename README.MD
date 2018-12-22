@@ -1,5 +1,5 @@
 # Docker Images - Debian Stretch 9.x
-[![Build Status](https://travis-ci.org/antwal/docker-debian-stretch.svg?branch=master)](https://travis-ci.org/antwal/docker-debian-stretch)
+[![Build Status](https://shields.beevelop.com/travis/antwal/docker-debian-stretch.svg?style=flat-square)](https://travis-ci.org/antwal/docker-debian-stretch)
 
 
 ## Debian Stretch Minimal

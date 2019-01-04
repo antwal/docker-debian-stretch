@@ -8,11 +8,11 @@
 mkTmp=0
 
 port=22
-argport=""
+argport="22:22"
 
 if [ "${kernel}" == "Darwin" ]; then
     port=2022
-    argport="-p 2022:22"
+    argport="2022:22"
 fi
 
 ##############################################################################
@@ -85,13 +85,9 @@ function testRunContainer() {
 function testListenSSH() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
-    # docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
-    #     -d "$imageName" > "$redirect" 2>&1
-
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" "$argport" \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
         -d "$imageName" > "$redirect" 2>&1
 
-    # waitForServer "$containerName" "2022"
     waitForServer "$containerName" "$port"
     assertTrue "waitForServer" $?
 }
@@ -100,10 +96,10 @@ function testEnableRoot() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
-        --env "ROOT_SSH=enabled" -p 2022:22 \
+        --env "ROOT_SSH=enabled" -p "$argport" \
         -d "$imageName" > "$redirect" 2>&1
 
-    waitForServer "$containerName" "2022"
+    waitForServer "$containerName" "$port"
     assertTrue "waitForServer" $?
 
     docker exec "$containerName" id root > /dev/null
@@ -114,17 +110,17 @@ function testUsersConf() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
 #     params="--name \"$containerName\" --env \"DEBBASE_SSH=enabled\" \
-# -p 2022:22 -v \"$testDir/files/users.conf:/etc/openssh/users.conf:ro\" \
+# -v \"$testDir/files/users.conf:/etc/openssh/users.conf:ro\" \
 # -d \"$imageName\""
 #
 #     runContainer "$params"
 #     assertTrue "runContainer" $?
 
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
         -v "$testDir/files/users.conf:/etc/openssh/users.conf:ro" \
         -d "$imageName" > "$redirect" 2>&1
 
-    waitForServer "$containerName" "2022"
+    waitForServer "$containerName" "$port"
     assertTrue "waitForServer" $?
 
     docker exec "$containerName" id user1 > /dev/null
@@ -144,10 +140,10 @@ function testUsersConf() {
 function testCommandCreateUsers() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
         -d "$imageName" > "$redirect" 2>&1
 
-    waitForServer "$containerName" "2022"
+    waitForServer "$containerName" "$port"
     assertTrue "waitForServer" $?
 
     docker exec "$containerName" create-ssh-user "create1:" > /dev/null
@@ -161,10 +157,10 @@ function testEnvCreateUsers() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     docker run --name "$containerName" -e "DEBBASE_SSH=enabled" \
-        -e "SSH_USERS=userenv1: userenv2:" -p 2022:22 \
+        -e "SSH_USERS=userenv1: userenv2:" -p "$argport" \
         -d "$imageName" > "$redirect" 2>&1
 
-    waitForServer "$containerName" "2022"
+    waitForServer "$containerName" "$port"
     assertTrue "waitForServer" $?
 
     docker exec "$containerName" id userenv1 > /dev/null
@@ -172,6 +168,34 @@ function testEnvCreateUsers() {
 
     docker exec "$containerName" id userenv2 > /dev/null
     assertTrue "userenv2" $?
+}
+
+function testSFTPServer() {
+    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
+
+    generateRSA
+
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
+        --env "SSH_USERS=usftp1:" -p "$argport" \
+        -v "$rootDir/$containerTmpDir/ssh_host_rsa_key.pub:/home/usftp1/.ssh/keys/id_rsa.pub:ro" \
+        -d "$imageName" > "$redirect" 2>&1
+
+    waitForServer "$containerName" "$port"
+    assertTrue "waitForServer" $?
+
+    runSftpCommands "$containerName" "usftp1" \
+        "cd /home/usftp1" \
+        "mkdir test" \
+        "cd test" \
+        "mkdir subtest" \
+        "exit"
+    assertTrue "runSftpCommands" $?
+
+    docker exec "$containerName" test -d /home/usftp1/test/
+    assertTrue "dir write access" $?
+
+    docker exec "$containerName" test -d /home/usftp1/test/subtest
+    assertTrue "subtest write access" $?
 }
 
 # function testRSACertificate() {
@@ -190,35 +214,7 @@ function testEnvCreateUsers() {
 #     # TODO: Check with local version
 # }
 
-function testSFTPServer() {
-    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
-
-    generateRSA
-
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
-        --env "SSH_USERS=usftp1:" -p 2022:22 \
-        -v "$rootDir/$containerTmpDir/ssh_host_rsa_key.pub:/home/usftp1/.ssh/keys/id_rsa.pub:ro" \
-        -d "$imageName" > "$redirect" 2>&1
-
-        # -v "$testDir/files/sshd_config:/etc/openssh/sshd_config:ro" \
-
-    waitForServer "$containerName" "2022"
-    assertTrue "waitForServer" $?
-
-    runSftpCommands "$containerName" "usftp1" \
-        "cd /home/usftp1" \
-        "mkdir test" \
-        "cd test" \
-        "mkdir subtest" \
-        "exit"
-    assertTrue "runSftpCommands" $?
-
-    docker exec "$containerName" test -d /home/usftp1/test/
-    assertTrue "dir write access" $?
-
-    docker exec "$containerName" test -d /home/usftp1/test/subtest
-    assertTrue "subtest write access" $?
-}
+# -v "$testDir/files/sshd_config:/etc/openssh/sshd_config:ro" \
 
 # function testSCP() {
 # TODO: Add dependencies if need
@@ -234,5 +230,5 @@ suite_addTest testEnableRoot
 suite_addTest testUsersConf
 suite_addTest testCommandCreateUsers
 suite_addTest testEnvCreateUsers
-# suite_addTest testRSACertificate
 suite_addTest testSFTPServer
+# suite_addTest testRSACertificate

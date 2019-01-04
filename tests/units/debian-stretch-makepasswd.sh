@@ -5,7 +5,7 @@
 ##############################################################################
 
 function testCommandCheckEntrypoint() {
-    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     docker run -i --name "$containerName" "$imageName" --help | grep 'makepasswd v' \
         > "$redirect" 2>&1
@@ -14,7 +14,7 @@ function testCommandCheckEntrypoint() {
 }
 
 function testCommandGeneratePassword() {
-    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     echo -n "test-password" | docker run -i --name "$containerName" \
         "$imageName" --crypt-md5 --clearfrom=- | awk '{print $2}' \

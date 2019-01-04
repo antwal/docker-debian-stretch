@@ -5,7 +5,7 @@
 ##############################################################################
 
 function testCommandInternalSyslog() {
-    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     params="--name \"$containerName\" \
 --env \"DEBBASE_SYSLOG=internal\" \
@@ -15,16 +15,16 @@ function testCommandInternalSyslog() {
     runContainer "$params"
     assertTrue "runContainer" $?
 
-    check="$(docker exec $containerName \
+    check="$(docker exec "$containerName" \
         bash -c "cat /etc/syslog.conf")"
 
-    echo $check | grep '/var/log' >/dev/null
+    echo "$check" | grep '/var/log' >/dev/null
     rtrn=$?
     assertTrue "Command Internal Syslog" ${rtrn}
 }
 
 function testCommandTimezone() {
-    echo -e "${COLOR}function $containerName()${NC}" > "$redirect" 2>&1
+    echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     params="--name \"$containerName\" \
 --env \"DEBBASE_TIMEZONE=Europe/Rome\" \
@@ -34,10 +34,10 @@ function testCommandTimezone() {
     runContainer "$params"
     assertTrue "runContainer" $?
 
-    check="$(docker exec $containerName \
+    check="$(docker exec "$containerName" \
         bash -c "cat /etc/timezone")"
 
-    echo $check | grep 'Europe/Rome' >/dev/null
+    echo "$check" | grep 'Europe/Rome' >/dev/null
     rtrn=$?
     assertTrue "Command Timezone" ${rtrn}
 }

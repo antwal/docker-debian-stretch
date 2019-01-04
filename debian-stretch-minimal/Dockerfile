@@ -12,6 +12,7 @@ COPY setup/ /usr/local/debian-base-setup/
 COPY files/ /usr/local/debian-base-setup/files/
 COPY scripts /usr/local/bin
 
+ENV DEBIAN_FRONTEND noninteractive
 RUN /usr/local/debian-base-setup/010-debian-base-minimal
 
 COPY preinit /usr/local/preinit

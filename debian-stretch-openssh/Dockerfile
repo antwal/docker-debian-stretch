@@ -1,11 +1,12 @@
-FROM antwal/debian-stretch-minimal
+FROM antwal/debian-stretch-minimal:latest
 
 MAINTAINER Walter Antolini <antwal@gmail.com>
 
 COPY setup/ /usr/local/debian-base-setup/
-COPY files/ /usr/local/debian-base-setup/files/
+# COPY files/ /usr/local/debian-base-setup/files/
 COPY scripts /usr/local/bin
 
+ENV DEBIAN_FRONTEND noninteractive
 RUN /usr/local/debian-base-setup/020-debian-base-openssh
 
 COPY preinit/ /usr/local/preinit/

@@ -8,7 +8,9 @@ mv /usr/sbin/policy-rc.d.disabled /usr/sbin/policy-rc.d
 update-rc.d mountkernfs.sh defaults
 apt-get update
 apt-get -y --no-install-recommends install pwgen gnupg gnupg2 openssl ssh \
-    openssh-server
+    openssh-server sudo
+
+# debianutils coreutils
 
 apt-get -y -u dist-upgrade
 update-rc.d -f mountkernfs.sh remove
@@ -19,7 +21,7 @@ rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 /usr/local/bin/docker-wipelogs
 
 rm -v /etc/ssh/*key*
-rm -v /etc/ssh/*config*
+#rm -v /etc/ssh/*config*
 
 mkdir -p /var/run/sshd
 

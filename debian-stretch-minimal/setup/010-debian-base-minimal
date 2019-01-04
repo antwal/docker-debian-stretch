@@ -16,6 +16,7 @@ COPY powerfail /etc/init.d/powerfail
 COPY sulogin /sbin/sulogin
 
 apt-get update
+apt-get -y --no-install-recommends install apt-utils
 apt-get -y --no-install-recommends install sysvinit-core inetutils-syslogd cron anacron at logrotate
 apt-get -y --no-install-recommends install psmisc procps
 apt-get -y remove --purge --auto-remove systemd

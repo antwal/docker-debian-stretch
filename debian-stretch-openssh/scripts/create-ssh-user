@@ -1,7 +1,8 @@
 #!/bin/bash
 set -Eeo pipefail
+# set -x
 
-# TODO: Fix user custom folder and shell
+# TODO: Fix user shell
 # TODO: Add custom certificate
 
 # shellcheck disable=2154
@@ -38,6 +39,7 @@ IFS=':' read -ra args <<< "$1"
 skipIndex=0
 chpasswdOptions=""
 useraddOptions=(--no-user-group)
+groupname="users"
 
 user="${args[0]}"; validateArg "username" "$user" "$reUser" || exit 1
 pass="${args[1]}"; validateArg "password" "$pass" "$rePass" || exit 1
@@ -60,18 +62,31 @@ if [ -n "$uid" ]; then
     useraddOptions+=(--non-unique --uid "$uid")
 fi
 
+# FIXED: Groups
 if [ -n "$gid" ]; then
     if ! getent group "$gid" > /dev/null; then
         groupadd --gid "$gid" "group_$gid"
     fi
 
+    groupname="$(getent group "$gid" | cut -d: -f1)"
+    useraddOptions+=(--gid "$gid")
+else
+    if ! getent group "$user" > /dev/null; then
+        groupadd "$user"
+        groupname="$user"
+    fi
+
+    gid="$(getent group "$user" | cut -d: -f3)"
     useraddOptions+=(--gid "$gid")
 fi
 
+
 useradd "${useraddOptions[@]}" "$user"
 mkdir -p "/home/$user"
-chown root:root "/home/$user"
-chmod 755 "/home/$user"
+
+# FIXED: Permissions
+chown "$user:$groupname" "/home/$user"
+chmod 700 "/home/$user"
 
 # Retrieving user id to use it in chown commands instead of the user name
 # to avoid problems on alpine when the user name contains a '.'
@@ -82,6 +97,8 @@ if [ -n "$pass" ]; then
 else
     usermod -p "*" "$user" # disabled password
 fi
+
+# TODO: Fix SSH
 
 # Add SSH keys to authorized_keys with valid permissions
 if [ -d "/home/$user/.ssh/keys" ]; then

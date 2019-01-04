@@ -1,7 +1,8 @@
 #!/bin/bash
 # See: https://github.com/kward/shunit2
 
-COLOR='\033[1;34m'
+LFUNC='\033[0;33m'
+LBLUE='\033[1;34m'
 NC='\033[0m'
 
 if [ $UID != 0 ] && ! groups | grep -qw docker; then
@@ -17,6 +18,8 @@ argCleanup=${3:-"cleanup"}
 argOwner=${owner:-"$(id -u -n):$(id -g -n)"}
 
 testDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# FIXED: MacOS with sessions enabled return error
+rootDir="$( dirname "$testDir/.." | pwd )"
 
 buildDir="${buildDir:-"$(pwd)"}"
 imageName="${imageName:-"none"}"
@@ -33,11 +36,11 @@ fi
 
 kernel=$(uname)
 
-if [ $kernel == "Darwin" ]; then
-    echo "MacOS System detected"
-else
-    echo "Linux System detected"
-fi
+# if [ "${kernel}" == "Darwin" ]; then
+#     echo "MacOS System detected"
+# else
+#     echo "Linux System detected"
+# fi
 
 # TODO: check ssh-keygen
 # TODO: print bash & docker version
@@ -56,7 +59,7 @@ set --
 ##############################################################################
 
 function oneTimeSetUp() {
-    echo -e "${COLOR}function oneTimeSetUp()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function oneTimeSetUp()${NC}" > "$redirect" 2>&1
 
     if [ "$argBuild" == "build" ]; then
         buildOptions+=("--no-cache" "--pull=true")
@@ -72,16 +75,16 @@ function oneTimeSetUp() {
 }
 
 function oneTimeTearDown() {
-    echo -e "${COLOR}function oneTimeTearDown()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function oneTimeTearDown()${NC}" > "$redirect" 2>&1
 
-    if [ "$argCleanup" == "cleanup" ]; then
+    if [ "$argCleanup" == "cleanup" ] && [ "$argBuild" == "build" ]; then
         echo "Remove image" > "$redirect" 2>&1
         docker image rm "$imageName" > "$redirect" 2>&1
     fi
 }
 
 function tearDown() {
-    echo -e "${COLOR}function tearDown()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function tearDown()${NC}" > "$redirect" 2>&1
 
     retireContainer "$containerName"
 
@@ -92,9 +95,9 @@ function tearDown() {
 }
 
 function runContainer() {
-    echo -e "${COLOR}function runContainer()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function runContainer()${NC}" > "$redirect" 2>&1
 
-    runOptions="$@"
+    runOptions="$*"
 
     if ! bash -c "docker run $runOptions > $redirect 2>&1"; then
         echo "Run failed"
@@ -109,27 +112,27 @@ function getContainerIp() {
 }
 
 function waitForServer() {
-    echo -e "${COLOR}function waitForServer()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function waitForServer()${NC}" > "$redirect" 2>&1
 
     containerName="$1"
     port="$2"
     ip=""
 
-    echo -n "Waiting for $containerName to open port $port ..." > "$redirect" 2>&1
+    if [ "${kernel}" == "Darwin" ]; then
+        # FIXED: MacOs can't connect directly to container host
+        ip="0.0.0.0"
+    else
+        ip="$(getContainerIp "$containerName")"
+    fi
+
+    echo -n "Waiting for $containerName to open port $port at address $ip..." > "$redirect" 2>&1
 
     for _ in {1..30}; do
         sleep 1
 
-        if [ $kernel == "Darwin" ]; then
-            # FIXED: MacOs can't connect directly to container host
-            ip="0.0.0.0"
-        else
-            ip="$(getContainerIp "$containerName")"
-        fi
-
         echo -n "."
-        if [ -n "$ip" ] && nc -z "$ip" $port; then
-            echo " OPEN"
+        if [ -n "$ip" ] && nc -z "$ip" "$port"; then
+            # echo " OPEN"
             return 0;
         fi
     done
@@ -139,9 +142,10 @@ function waitForServer() {
 }
 
 function retireContainer() {
-    echo -e "${COLOR}function retireContainer()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function retireContainer()${NC}" > "$redirect" 2>&1
 
-    if [ "$(docker ps -qaf name="$1")" ]; then
+    # if [ "$(docker ps -qaf name="$1")" ]; then
+    if [ -n "$(docker ps -qaf name="$1")" ]; then
         if [ "$argOutput" != "quiet" ]; then
             echo "Docker log for $1:"
             docker logs "$1"
@@ -154,7 +158,7 @@ function retireContainer() {
 }
 
 function setUp() {
-    echo -e "${COLOR}function setUp()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function setUp()${NC}" > "$redirect" 2>&1
 
     # shellcheck disable=SC2154
     containerName="${_shunit_test_}"
@@ -176,10 +180,11 @@ function setUp() {
 }
 
 function suite() {
-    echo -e "${COLOR}function suite()${NC}" > "$redirect" 2>&1
+    echo -e "${LFUNC}function suite()${NC}" > "$redirect" 2>&1
 
     if [ -f "$testDir/units/$buildDir.sh" ]; then
         echo "Include all tests unit for $buildDir" > "$redirect" 2>&1
+        # TODO: SC1090: Can't follow non-constant source. Use a directive to specify location.
         . "$testDir/units/$buildDir.sh"
     else
         echo "No tests file for $buildDir" > "$redirect" 2>&1
@@ -193,7 +198,7 @@ function suite() {
 ##############################################################################
 
 function testCommonEnd() {
-    echo -e "${COLOR}function testCommonEnd()${NC}" > "$redirect" 2>&1
+    echo -e "${LBLUE}function testCommonEnd()${NC}" > "$redirect" 2>&1
 
     echo "Passed" > "$redirect" 2>&1
 }

@@ -8,7 +8,6 @@ set -Eeo pipefail
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
-reArgsMaybe="^[^:[:space:]]+:.*$" # Smallest indication of attempt to use argument
 reArgSkip='^([[:blank:]]*#.*|[[:blank:]]*)$' # comment or empty line
 
 function log() {
@@ -24,16 +23,41 @@ if [ "$DEBBASE_SSH" = "enabled" ]; then
         echo "SSH server enabled; unset DEBBASE_SSH to disable"
 
         # TODO: Check custom configs
+        #COPY sshd_config /etc/ssh/sshd_config
+        #COPY ssh_config /etc/ssh/ssh_config
 
-        COPY sshd_config /etc/ssh/sshd_config
-        COPY ssh_config /etc/ssh/ssh_config
+        # INFO: Added SFTP Group
+        # groupadd sftponly
+
+        # TODO: ChRoot Jail
+
+        if [ -f /etc/openssh/sshd_config ]; then
+            echo "SSH Daemon Config by docker exists."
+            echo "Replace default config with docker version."
+            cat /etc/openssh/sshd_config > /etc/ssh/sshd_config
+
+            # tail -4 /etc/ssh/sshd_config
+        else
+            echo "Default SSH Daemon Config"
+
+            sed -i 's/#Port 22/Port 22/' /etc/ssh/sshd_config
+            sed -i 's/#HostKey \/etc\/ssh\/ssh_host_rsa_key/HostKey \/etc\/ssh\/ssh_host_rsa_key/' /etc/ssh/sshd_config
+            sed -i 's/#HostKey \/etc\/ssh\/ssh_host_ed25519_key/HostKey \/etc\/ssh\/ssh_host_ed25519_key/' /etc/ssh/sshd_config
+
+            # INFO: Working only on default config
+            if [ "$ROOT_SSH" = "enabled" ]; then
+                echo 'root:docker' | chpasswd
+                sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+            else
+                echo "Root user disabled; set ROOT_SSH=enabled to enable"
+            fi
+        fi
 
         # SSH login fix. Otherwise user is kicked off after login
         #sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-        echo 'root:docker' | chpasswd
-
-        update-rc.d ssh enable
+        # sed -i 's/#ChrootDirectory none/ChrootDirectory %h/' /etc/ssh/sshd_config
+        # update-rc.d ssh enable
 
         # Generate unique ssh keys for this container, if needed
         if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
@@ -86,8 +110,9 @@ if [ "$DEBBASE_SSH" = "enabled" ]; then
         fi
 
         # Source custom scripts, if any
-        if [ -d /etc/sftp.d ]; then
-            for f in /etc/sftp.d/*; do
+        # TODO: Fix it
+        if [ -d /etc/openssh.d ]; then
+            for f in /etc/openssh.d/*; do
                 if [ -x "$f" ]; then
                     log "Running $f ..."
                     $f
@@ -97,6 +122,8 @@ if [ "$DEBBASE_SSH" = "enabled" ]; then
             done
             unset f
         fi
+
+        update-rc.d ssh enable
 
         log "Executing sshd"
         exec /usr/sbin/sshd -D -e

@@ -7,6 +7,14 @@
 # 0 - create temps folders for tests - comment for disable
 mkTmp=0
 
+port=22
+argport=""
+
+if [ "${kernel}" == "Darwin" ]; then
+    port=2022
+    argport="-p 2022:22"
+fi
+
 ##############################################################################
 ## Helper functions
 ##############################################################################
@@ -77,22 +85,15 @@ function testRunContainer() {
 function testListenSSH() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
-    if [ "${kernel}" == "Darwin" ]; then
-        docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
-            -d "$imageName" > "$redirect" 2>&1
+    # docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p 2022:22 \
+    #     -d "$imageName" > "$redirect" 2>&1
 
-        waitForServer "$containerName" "2022"
-        assertTrue "Darwin -> waitForServer" $?
-    else
-        docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
-            -d "$imageName" > "$redirect" 2>&1
-
-        waitForServer "$containerName" "22"
-        assertTrue "Linux -> waitForServer" $?
-    fi
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" "$argport" \
+        -d "$imageName" > "$redirect" 2>&1
 
     # waitForServer "$containerName" "2022"
-    # assertTrue "waitForServer" $?
+    waitForServer "$containerName" "$port"
+    assertTrue "waitForServer" $?
 }
 
 function testEnableRoot() {

@@ -8,11 +8,11 @@
 mkTmp=0
 
 port=22
-argport="22:22"
+argport=()
 
 if [ "${kernel}" == "Darwin" ]; then
     port=2022
-    argport="2022:22"
+    argport=(--publish "2022:22")
 fi
 
 ##############################################################################
@@ -85,7 +85,7 @@ function testRunContainer() {
 function testListenSSH() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" "${argport[@]}" \
         -d "$imageName" > "$redirect" 2>&1
 
     waitForServer "$containerName" "$port"
@@ -96,7 +96,7 @@ function testEnableRoot() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
-        --env "ROOT_SSH=enabled" -p "$argport" \
+        --env "ROOT_SSH=enabled" "${argport[@]}" \
         -d "$imageName" > "$redirect" 2>&1
 
     waitForServer "$containerName" "$port"
@@ -116,7 +116,7 @@ function testUsersConf() {
 #     runContainer "$params"
 #     assertTrue "runContainer" $?
 
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" "${argport[@]}" \
         -v "$testDir/files/users.conf:/etc/openssh/users.conf:ro" \
         -d "$imageName" > "$redirect" 2>&1
 
@@ -140,7 +140,7 @@ function testUsersConf() {
 function testCommandCreateUsers() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
-    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" -p "$argport" \
+    docker run --name "$containerName" --env "DEBBASE_SSH=enabled" "${argport[@]}" \
         -d "$imageName" > "$redirect" 2>&1
 
     waitForServer "$containerName" "$port"
@@ -157,7 +157,7 @@ function testEnvCreateUsers() {
     echo -e "${LBLUE}function $containerName()${NC}" > "$redirect" 2>&1
 
     docker run --name "$containerName" -e "DEBBASE_SSH=enabled" \
-        -e "SSH_USERS=userenv1: userenv2:" -p "$argport" \
+        -e "SSH_USERS=userenv1: userenv2:" "${argport[@]}" \
         -d "$imageName" > "$redirect" 2>&1
 
     waitForServer "$containerName" "$port"
@@ -176,7 +176,7 @@ function testSFTPServer() {
     generateRSA
 
     docker run --name "$containerName" --env "DEBBASE_SSH=enabled" \
-        --env "SSH_USERS=usftp1:" -p "$argport" \
+        --env "SSH_USERS=usftp1:" "${argport[@]}" \
         -v "$rootDir/$containerTmpDir/ssh_host_rsa_key.pub:/home/usftp1/.ssh/keys/id_rsa.pub:ro" \
         -d "$imageName" > "$redirect" 2>&1
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeo pipefail
-set -x
+# set -x
 
 FILESDIR="/usr/local/debian-base-setup/files"
 

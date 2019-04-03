@@ -1,4 +1,4 @@
-# Docker container images with "headless" VNC session
+# Debian Stretch Virtual Desktop - Headless (NodeJS, Puppeteer, VNC)
 
 This repository contains a collection of Docker images with headless VNC environments.
 

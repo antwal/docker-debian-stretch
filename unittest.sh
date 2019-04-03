@@ -47,6 +47,9 @@ buildImages() {
 
 buildPython() {
     log "Start build python version image ..."
+    # docker build -t antwal/debian-stretch-python:3.5.6 --build-arg version="3.5.6" debian-stretch-python/
+    # docker build -t antwal/debian-stretch-python:3.6.8 --build-arg version="3.6.8" debian-stretch-python/
+    # docker build -t antwal/debian-stretch-python:3.7.2 --build-arg version="3.7.2" debian-stretch-python/
 }
 
 if [[ -z "$1" || "$1" =~ $reArgsMaybe ]]; then

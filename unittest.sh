@@ -34,7 +34,7 @@ if [ ! -f "$currentDir/tests/shunit2/shunit2" ]; then
 fi
 
 buildImages() {
-    for DIR in debian-stretch-{minimal,makepasswd,openssh,python,apache,nginx}; do
+    for DIR in debian-stretch-{minimal,makepasswd,openssh}; do
         if [ -d "$DIR" ] && [ -f "$DIR/Dockerfile" ]; then
             log "Start build $DIR:$1 ($2)"
             export currentOwner=""; currentOwner="$(id -u -n):$(id -g -n)"
@@ -43,6 +43,10 @@ buildImages() {
             log "Skip build $DIR:$1"
         fi
     done
+}
+
+buildPython() {
+    log "Start build python version image ..."
 }
 
 if [[ -z "$1" || "$1" =~ $reArgsMaybe ]]; then

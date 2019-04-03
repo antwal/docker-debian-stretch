@@ -19,3 +19,9 @@
 [![Size](https://shields.beevelop.com/docker/image/image-size/antwal/debian-stretch-openssh/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-openssh/)
 
 - docker pull antwal/debian-stretch-openssh
+
+## Debian Stretch Virtual Desktop - Headless (NodeJS, Puppeteer, VNC)
+[![Layers](https://shields.beevelop.com/docker/image/layers/antwal/debian-stretch-nodevnc/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-nodevnc/)
+[![Size](https://shields.beevelop.com/docker/image/image-size/antwal/debian-stretch-nodevnc/latest.svg?style=flat-square)](https://hub.docker.com/r/antwal/debian-stretch-nodevnc/)
+
+- docker pull antwal/debian-stretch-nodevnc

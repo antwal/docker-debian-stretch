@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -Eeo pipefail
+# set -x
+
+# shellcheck disable=2154
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+
+reArgSkip='^([[:blank:]]*#.*|[[:blank:]]*)$' # comment or empty line
+
+function log() {
+    echo "[$0] $*" >&2
+}
+
+source /root/.bashrc
+
+## Connection ports for controlling the UI:
+# VNC port:5900, default
+# noVNC webport, connect via http://IP:6900/?password=vncpassword
+
+ln -sf /headless/noVNC/vnc_auto.html /headless/noVNC/index.html
+
+VNC_IP=$(hostname -i)
+
+mkdir -p "/headless/.vnc"
+PASSWD_PATH="/headless/.vnc/passwd"
+
+if [ -n "$VNC_PW" ]; then
+    echo "------------------ change VNC password  ------------------"
+    # first entry is control, second is view (if only one is valid for both)
+
+    if [[ -f $PASSWD_PATH ]]; then
+        echo "---------  purging existing VNC password settings  ---------"
+        rm -f $PASSWD_PATH
+    fi
+
+    if [[ ${VNC_VIEW_ONLY} == "true" ]]; then
+        echo "start VNC server in VIEW ONLY mode!"
+        # create random pw to prevent access
+        echo $(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20) | vncpasswd -f > $PASSWD_PATH
+    fi
+
+    echo "${VNC_PW}" | vncpasswd -f >> $PASSWD_PATH
+    chmod 600 $PASSWD_PATH
+fi
+
+# TODO: SSL
+# Warning: could not find self.pem
+
+# /usr/bin/supervisord --configuration /etc/supervisor/supervisord.conf &> /var/log/supervisor/daemon.log
+update-rc.d supervisor enable
+
+log "Executing Supervisor"
+# exec /usr/sbin/sshd -D -e
+#service supervisor start
+exec /usr/bin/supervisord --configuration /etc/supervisor/supervisord.conf &> /var/log/supervisor/daemon.log

@@ -1,0 +1,122 @@
+#!/bin/bash
+set -Eeo pipefail
+set -x
+
+# shellcheck disable=2154
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+
+function log() {
+    LRED='\033[1;31m'
+    CYAN='\033[0;36m'
+    NC='\033[0m'
+    echo -e "${LRED}[$0]${NC} ${CYAN}$*${NC}" >&2
+}
+
+FILESDIR="/usr/local/debian-base-setup/files"
+COPY () {
+    cp -a "$FILESDIR/$1" "$2"
+}
+
+mv /usr/sbin/policy-rc.d.disabled /usr/sbin/policy-rc.d
+
+update-rc.d mountkernfs.sh defaults
+
+apt-get update
+apt-get -y -u dist-upgrade
+
+update-rc.d -f mountkernfs.sh remove
+
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+log "Installing xvfb, x11vnc and others dependencies ..."
+apt-get update
+apt-get -y --no-install-recommends install \
+        xterm \
+        supervisor \
+        socat \
+        xvfb \
+        x11vnc \
+        openbox \
+        menu \
+        net-tools \
+        python-xdg
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+log "Installing tools packages ..."
+# export savedAptMark="$(apt-mark showmanual)"
+apt-get update
+apt-get -y --no-install-recommends install \
+        ca-certificates \
+        netbase \
+        unzip \
+        wget \
+        curl \
+        software-properties-common \
+        apt-transport-https \
+        gpg \
+        dirmngr
+# as of Stretch, "gpg" is no longer included by default
+$(command -v gpg > /dev/null || echo 'gnupg dirmngr')
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# WARNING: no 'numpy' module, HyBi protocol is slower or disabled
+# https://github.com/novnc/websockify/issues/77
+# python-numpy
+
+log "Install TigerVNC server for vncpassword tools ..."
+wget -qO- https://dl.bintray.com/tigervnc/stable/tigervnc-1.8.0.x86_64.tar.gz | tar xz --strip 1 -C /
+
+log "Install noVNC - HTML5 based VNC viewer ..."
+export NOVNC_SHA="b403cb92fb8de82d04f305b4f14fa978003890d7"
+export WEBSOCKIFY_SHA="558a6439f14b0d85a31145541745e25c255d576b"
+
+mkdir -p /headless
+
+# TODO: Fix password for VNC
+
+wget -nv -O noVNC.zip "https://github.com/kanaka/noVNC/archive/${NOVNC_SHA}.zip"
+unzip -x noVNC.zip
+mv noVNC-${NOVNC_SHA} /headless/noVNC
+rm noVNC.zip
+
+wget -nv -O websockify.zip "https://github.com/kanaka/websockify/archive/${WEBSOCKIFY_SHA}.zip"
+unzip -x websockify.zip
+mv websockify-${WEBSOCKIFY_SHA} /headless/noVNC/utils/websockify
+rm websockify.zip
+
+log "Install NodeJS, NPM, Yarn ..."
+curl -sL https://deb.nodesource.com/setup_10.x | bash -
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+apt-get update
+apt-get -y --no-install-recommends install \
+        nodejs \
+        yarn
+# apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Chrome Deps
+log "Installing Puppeteer dependencies ..."
+apt-get update
+apt-get -y --no-install-recommends install \
+        libasound2 libatk1.0-0 libc6 libcairo2 libcups2 \
+        libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 \
+        libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 \
+        libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 \
+        libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
+        libxrender1 libxss1 libxtst6 libnss3
+apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# npm install -g puppeteer
+
+COPY supervisord.conf /etc/supervisor/conf.d/nodevnc.conf
+chmod a+x /etc/supervisor/conf.d/nodevnc.conf
+
+printenv
+
+/usr/local/bin/docker-wipelogs
+
+mv /usr/sbin/policy-rc.d /usr/sbin/policy-rc.d.disabled

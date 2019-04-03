@@ -14,10 +14,10 @@ function log() {
     echo "[$0] $*" >&2
 }
 
-FILESDIR="/usr/local/debian-base-setup/files"
-COPY () {
-    cp -a "$FILESDIR/$1" "$2"
-}
+# FILESDIR="/usr/local/debian-base-setup/files"
+# COPY () {
+#     cp -a "$FILESDIR/$1" "$2"
+# }
 
 if [ "$DEBBASE_SSH" = "enabled" ]; then
         echo "SSH server enabled; unset DEBBASE_SSH to disable"

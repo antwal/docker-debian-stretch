@@ -11,6 +11,12 @@ script:
   - chmod a+x ./unittest.sh
   - ./unittest.sh build verbose cleanup
 
+#jobs:
+#  include:
+#    - stage: test
+#      name: ""
+#      script: 
+
 # only execute the following instructions in
 # the case of a success (failing at this point
 # won't mark the build as a failure).

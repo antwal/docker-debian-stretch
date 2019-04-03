@@ -2,6 +2,8 @@
 set -Eeo pipefail
 set -x
 
+FILESDIR="/usr/local/debian-base-setup/files"
+
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
@@ -12,7 +14,6 @@ function log() {
     echo -e "${LRED}[$0]${NC} ${CYAN}$*${NC}" >&2
 }
 
-FILESDIR="/usr/local/debian-base-setup/files"
 COPY () {
     cp -a "$FILESDIR/$1" "$2"
 }

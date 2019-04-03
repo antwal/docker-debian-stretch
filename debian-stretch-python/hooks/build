@@ -1,4 +1,2 @@
 #!/bin/bash
-echo "$(PWD)"
-echo "$(ls)"
-docker build -t $IMAGE_NAME --build-arg version="${DOCKER_TAG}" -f $DOCKERFILE_PATH .
+docker build -t $IMAGE_NAME --build-arg version="${DOCKER_TAG}" .

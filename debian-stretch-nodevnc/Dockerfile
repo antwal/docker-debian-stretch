@@ -7,6 +7,7 @@ COPY files/ /usr/local/debian-base-setup/files/
 
 ENV DEBIAN_FRONTEND noninteractive
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 1
+
 RUN /usr/local/debian-base-setup/020-debian-base-nodevnc
 
 ENV TERM=xterm \

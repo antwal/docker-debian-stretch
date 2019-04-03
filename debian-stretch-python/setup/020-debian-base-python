@@ -1,0 +1,175 @@
+#!/bin/bash
+set -Eeo pipefail
+set -x
+
+# shellcheck disable=2154
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+
+function log() {
+    LRED='\033[1;31m'
+    CYAN='\033[0;36m'
+    NC='\033[0m'
+    echo -e "${LRED}[$0]${NC} ${CYAN}$*${NC}" >&2
+}
+
+mv /usr/sbin/policy-rc.d.disabled /usr/sbin/policy-rc.d
+
+update-rc.d mountkernfs.sh defaults
+
+apt-get update
+apt-get -y -u dist-upgrade
+
+update-rc.d -f mountkernfs.sh remove
+
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# ENV PYTHON_VERSION 3.7.2
+# ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+# ENV PYTHON_VERSION 3.5.6
+# ENV GPG_KEY 97FC712E4C024BBEA48A61ED3A5CA953F73C700D
+# ENV PYTHON_VERSION 3.6.8
+# ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+
+if [[ "$PYTHON_VERSION" == "3.5.6" ]]; then
+    log "Python 3.5.6 Version!"
+    export GPG_KEY=97FC712E4C024BBEA48A61ED3A5CA953F73C700D
+elif [ "$PYTHON_VERSION" == "3.6.8" ]; then
+    log "Python 3.6.8 Version!"
+    export GPG_KEY=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+elif [ "$PYTHON_VERSION" == "3.7.2" ]; then
+    log "Python 3.7.2 Version!"
+    export GPG_KEY=0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
+else
+    log "FATAL: No python version!"
+    exit 3
+fi
+
+# Symbolic Link Python 3.6 packages
+# mkdir -p /var/lib/site-packages
+
+# export buildDir="$(mktemp -d)"
+# cd $buildDir
+
+log "Installing python build dependencies ..."
+
+export savedAptMark="$(apt-mark showmanual)"
+apt-get update
+apt-get -y --no-install-recommends install \
+        ca-certificates \
+        netbase \
+        dpkg-dev \
+        gcc \
+        libbz2-dev \
+        libc6-dev \
+        libexpat1-dev \
+        libffi-dev \
+        libgdbm-dev \
+        liblzma-dev \
+        libncursesw5-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libssl-dev \
+        make \
+        tk-dev \
+        wget \
+        xz-utils \
+        zlib1g-dev \
+        g++ \
+        gpg \
+        dirmngr
+# as of Stretch, "gpg" is no longer included by default
+$(command -v gpg > /dev/null || echo 'gnupg dirmngr')
+
+log "Installing Python v.$PYTHON_VERSION ..."
+
+wget -O python.tar.xz "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz"
+wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc"
+
+export GNUPGHOME="$(mktemp -d)"
+
+gpg --batch --keyserver eu.pool.sks-keyservers.net --recv-keys "$GPG_KEY"
+gpg --batch --verify python.tar.xz.asc python.tar.xz
+
+{ command -v gpgconf > /dev/null && gpgconf --kill all || :; }
+
+rm -rf "$GNUPGHOME" python.tar.xz.asc
+
+mkdir -p /usr/src/python
+tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz
+rm python.tar.xz
+
+cd /usr/src/python
+gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"
+./configure \
+    --build="$gnuArch" \
+    --enable-loadable-sqlite-extensions \
+    --enable-shared \
+    --with-system-expat \
+    --with-system-ffi \
+    -without-ensurepip
+make -j "$(nproc)"
+make install
+ldconfig
+
+log "Cleaning python build dependencies ... "
+apt-mark auto '.*' > /dev/null
+apt-mark manual $savedAptMark
+find /usr/local -type f -executable -not \( -name '*tkinter*' \) -exec ldd '{}' ';' \
+        | awk '/=>/ { print $(NF-1) }' \
+        | sort -u \
+        | xargs -r dpkg-query --search \
+        | cut -d: -f1 \
+        | sort -u \
+        | xargs -r apt-mark manual \
+&& apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+&& rm -rf /var/lib/apt/lists/* \
+\
+&& find /usr/local -depth \
+    \( \
+        \( -type d -a \( -name test -o -name tests \) \) \
+        -o \
+        \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+    \) -exec rm -rf '{}' + \
+&& rm -rf /usr/src/python \
+\
+&& log "Installed Python Version $(python3 --version)"
+
+cd /usr/local/bin \
+&& ln -s idle3 idle \
+&& ln -s pydoc3 pydoc \
+&& ln -s python3 python \
+&& ln -s python3-config python-config
+
+log "Installing pip build dependencies ..."
+savedAptMark="$(apt-mark showmanual)"
+apt-get update
+apt-get install -y --no-install-recommends wget
+
+log "Installing PIP v.$PYTHON_PIP_VERSION ..."
+
+wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'
+
+log "Cleaning pip build dependencies ... "
+apt-mark auto '.*' > /dev/null
+[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark
+apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+rm -rf /var/lib/apt/lists/*
+
+python get-pip.py \
+    --disable-pip-version-check \
+    --no-cache-dir \
+    "pip==$PYTHON_PIP_VERSION"
+log "Installed PIP Version $(pip --version)"
+
+find /usr/local -depth \
+    \( \
+        \( -type d -a \( -name test -o -name tests \) \) \
+        -o \
+        \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+    \) -exec rm -rf '{}' +; \
+rm -f get-pip.py
+
+/usr/local/bin/docker-wipelogs
+
+mv /usr/sbin/policy-rc.d /usr/sbin/policy-rc.d.disabled

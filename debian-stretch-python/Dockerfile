@@ -12,7 +12,9 @@ ENV PATH /usr/local/bin:$PATH
 ENV LANG C.UTF-8
 
 ARG version
+ARG keyserver
 ENV PYTHON_VERSION=$version
+ENV KEY_SERVER=$keyserver
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"
 ENV PYTHON_PIP_VERSION 18.1

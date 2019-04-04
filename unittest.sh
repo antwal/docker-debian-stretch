@@ -26,11 +26,14 @@ fi
 # Ask if need password for SUDO
 sudo test 1 -eq 1
 
-chmod a+x "$currentDir/submodules.sh"
+# chmod a+x "$currentDir/submodules.sh"
+chmod a+x "$currentDir/.travis/install.sh"
 chmod a+x "$currentDir/tests/run"
 
 if [ ! -f "$currentDir/tests/shunit2/shunit2" ]; then
-    "$currentDir/submodules.sh"
+    # "$currentDir/submodules.sh"
+    log "Need install shunit2 ..."
+    "$currentDir/.travis/install.sh"
 fi
 
 buildImages() {

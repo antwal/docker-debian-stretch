@@ -88,7 +88,13 @@ wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[
 
 export GNUPGHOME="$(mktemp -d)"
 
-gpg --batch --keyserver eu.pool.sks-keyservers.net --recv-keys "$GPG_KEY"
+if [ -z "$KEY_SERVER" ]; then
+    export GPG_SERVER="eu.pool.sks-keyservers.net"
+else
+    export GPG_SERVER="$KEY_SERVER"
+fi
+
+gpg --batch --keyserver "$GPG_SERVER" --recv-keys "$GPG_KEY"
 gpg --batch --verify python.tar.xz.asc python.tar.xz
 
 { command -v gpgconf > /dev/null && gpgconf --kill all || :; }

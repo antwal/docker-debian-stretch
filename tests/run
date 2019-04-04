@@ -13,6 +13,7 @@ fi
 argBuild=${1:-"build"}
 argOutput=${2:-"quiet"}
 argCleanup=${3:-"cleanup"}
+# argDocker=${4:-""}
 
 # FIXED: Working on Unix / Darwin
 argOwner=${owner:-"$(id -u -n):$(id -g -n)"}
@@ -25,6 +26,7 @@ buildDir="${buildDir:-"$(pwd)"}"
 imageName="${imageName:-"none"}"
 
 buildOptions=(--tag "$imageName")
+# buildArgs=(--build-arg "$argDocker")
 
 useTmp=1
 

@@ -4,18 +4,26 @@ services:
   - docker
 
 before_install:
-  - chmod a+x ./.travis/before_install.sh
-  - ./.travis/before_install.sh
+#  - chmod a+x ./.travis/before_install.sh
+  - bash ./.travis/before_install.sh
+
+install:
+  - bash ./.travis/install.sh
 
 script:
-  - chmod a+x ./unittest.sh
-  - ./unittest.sh build verbose cleanup
+#  - chmod a+x ./unittest.sh
+  - bash ./unittest.sh build verbose cleanup
 
 #jobs:
 #  include:
 #    - stage: test
-#      name: ""
-#      script: 
+#      name: "Debian Stretch Minimal"
+#      script: bash ./unittest.sh debian-stretch-minimal build verbose cleanup
+#    - stage: test
+#      name: "Debian Stretch Makepasswd"
+#      script: bash ./unittest.sh debian-stretch-makepasswd build verbose cleanup
+
+
 
 # only execute the following instructions in
 # the case of a success (failing at this point

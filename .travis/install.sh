@@ -12,9 +12,10 @@ git config -f "$currentDir/.gitmodules" --get-regexp '^submodule\..*\.path$' |
     do
         url_key=$(echo "$path_key" | sed 's/\.path/.url/')
         url=$(git config -f .gitmodules --get "$url_key")
-        if [[ ! -d "$currentDir/$path" || ! -f "$currentDir/tests/shunit2/shunit2" ]]; then
-            git submodule add -f "$url" "$path"
+        if find "$path" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
+            echo "Removed old content of $path"
+            rm -Rf $path
         else
-            echo "$path -> $url, already installed."
-        fi
+            echo "Install $url to $path."
+            git submodule add -f "$url" "$path"
     done

@@ -13,7 +13,7 @@ fi
 argBuild=${1:-"build"}
 argOutput=${2:-"quiet"}
 argCleanup=${3:-"cleanup"}
-argDocker=${4:-""}
+argDocker=${*:4}
 
 # FIXED: Working on Unix / Darwin
 argOwner=${owner:-"$(id -u -n):$(id -g -n)"}
@@ -27,15 +27,6 @@ imageName="${imageName:-"none"}"
 
 buildOptions=(--tag "$imageName")
 
-if [ ! -z "$argDocker" ]; then
-    argsDocker=($argDocker)
-    for ((i=0; i<${#argsDocker[@]}; ++i)); do
-        buildOptions+=(--build-arg "${argsDocker[$i]}")
-    done
-
-    echo -e "${LBLUE}buildOptions:${NC} ${buildOptions[@]}" > "$redirect" 2>&1
-fi
-
 useTmp=1
 
 if [ "$argOutput" == "quiet" ]; then
@@ -45,6 +36,15 @@ else
 fi
 
 kernel=$(uname)
+
+if [ ! -z "$argDocker" ]; then
+    argsDocker=(${argDocker//\'/})
+    for ((i=0; i<${#argsDocker[@]}; ++i)); do
+        buildOptions+=(--build-arg "${argsDocker[$i]}")
+    done
+
+    # echo -e "${LBLUE}buildOptions:${NC} ${buildOptions[@]}" > "$redirect" 2>&1
+fi
 
 # if [ "${kernel}" == "Darwin" ]; then
 #     echo "MacOS System detected"

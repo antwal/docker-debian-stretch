@@ -7,9 +7,9 @@ branches:
   only:
   - master
 
-git:
-  submodules:
-    false
+# git:
+#   submodules:
+#     false
 
 before_install:
   - chmod a+x ./.travis/before_install.sh
@@ -19,36 +19,36 @@ install:
   - chmod a+x ./.travis/install.sh
   - ./.travis/install.sh
 
-# before_script:
-#   - chmod a+x ./unitest.sh
-
-script:
+before_script:
   - chmod a+x ./unitest.sh
-  - bash ./unittest.sh --build --verbose --cleanup
 
-# jobs:
-#  include:
-#    - stage: test
-#      name: "Base Minimal"
-#      script: ./unittest.sh --build debian-stretch-minimal --verbose --cleanup
-#    - stage: test
-#      name: "Makepasswd"
-#      script: ./unittest.sh --build debian-stretch-makepasswd --verbose --cleanup
-#    - stage: test
-#      name: "OpenSSH"
-#      script: ./unittest.sh --build debian-stretch-openssh --verbose --cleanup
-#    - stage: test
-#      name: "NodeJS"
-#      script: ./unittest.sh --build debian-stretch-nodevnc --tag=latest --verbose --cleanup
-#    - stage: test
-#      name: "Python 3.5.6"
-#      script: ./unittest.sh --build debian-stretch-python --tag=3.5.6 --verbose --cleanup --args="version=3.5.6 keyserver=eu.pool.sks-keyservers.net"
-#    - stage: test
-#      name: "Python 3.6.8"
-#      script: ./unittest.sh --build debian-stretch-python --tag=3.6.8 --verbose --cleanup --args="version=3.6.8 keyserver=eu.pool.sks-keyservers.net"
-#    - stage: test
-#      name: "Python 3.7.2"
-#      script: ./unittest.sh --build debian-stretch-python --tag=3.7.2 --verbose --cleanup --args="version=3.7.2 keyserver=eu.pool.sks-keyservers.net"
+# script:
+#   - chmod a+x ./unitest.sh
+#   - bash ./unittest.sh --build --verbose --cleanup
+
+jobs:
+ include:
+   - stage: test
+     name: "Base Minimal"
+     script: ./unittest.sh --build debian-stretch-minimal --verbose --cleanup
+   - stage: test
+     name: "Makepasswd"
+     script: ./unittest.sh --build debian-stretch-makepasswd --verbose --cleanup
+   - stage: test
+     name: "OpenSSH"
+     script: ./unittest.sh --build debian-stretch-openssh --verbose --cleanup
+   - stage: test
+     name: "NodeJS"
+     script: ./unittest.sh --build debian-stretch-nodevnc --tag=latest --verbose --cleanup
+   - stage: test
+     name: "Python 3.5.6"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.5.6 --verbose --cleanup --args="version=3.5.6 keyserver=eu.pool.sks-keyservers.net"
+   - stage: test
+     name: "Python 3.6.8"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.6.8 --verbose --cleanup --args="version=3.6.8 keyserver=eu.pool.sks-keyservers.net"
+   - stage: test
+     name: "Python 3.7.2"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.7.2 --verbose --cleanup --args="version=3.7.2 keyserver=eu.pool.sks-keyservers.net"
 
 
 # only execute the following instructions in

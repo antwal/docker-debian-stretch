@@ -18,4 +18,5 @@ git config -f "$currentDir/.gitmodules" --get-regexp '^submodule\..*\.path$' |
         else
             echo "Install $url to $path."
             git submodule add -f "$url" "$path"
+        fi
     done

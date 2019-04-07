@@ -32,6 +32,8 @@ if [ ! -z "$argDocker" ]; then
     for ((i=0; i<${#argsDocker[@]}; ++i)); do
         buildOptions+=(--build-arg "${argsDocker[$i]}")
     done
+
+    echo -e "${LBLUE}buildOptions:${NC} ${buildOptions[@]}" > "$redirect" 2>&1
 fi
 
 useTmp=1
@@ -74,7 +76,7 @@ function oneTimeSetUp() {
     fi
 
     # Build image
-    echo "Docker Build Options: ${buildOptions[@]}"
+    echo -e "${LBLUE}Docker Build Options:${NC} ${buildOptions[@]}" > "$redirect" 2>&1
     if ! docker build "${buildOptions[@]}" "$buildDir"; then
         echo "Build failed"
         exit 1

@@ -12,10 +12,10 @@ git:
     false
 
 before_install:
-  - bash ./.travis/before_install.sh
+  - sh ./.travis/before_install.sh
 
 install:
-  - bash ./.travis/install.sh
+  - sh ./.travis/install.sh
 
 # script:
 #   - bash ./unittest.sh --build --verbose --cleanup

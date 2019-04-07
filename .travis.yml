@@ -12,37 +12,42 @@ git:
     false
 
 before_install:
-  - sh ./.travis/before_install.sh
+  - chmod a+x ./.travis/before_install.sh
+  - ./.travis/before_install.sh
 
 install:
-  - sh ./.travis/install.sh
+  - chdmod a+x ./.travis/install.sh
+  - ./.travis/install.sh
 
 # script:
 #   - bash ./unittest.sh --build --verbose --cleanup
+
+before_script:
+  - chmod a+x ./unitest.sh
 
 jobs:
  include:
    - stage: test
      name: "Base Minimal"
-     script: bash ./unittest.sh --build debian-stretch-minimal --verbose --cleanup
+     script: ./unittest.sh --build debian-stretch-minimal --verbose --cleanup
    - stage: test
      name: "Makepasswd"
-     script: bash ./unittest.sh --build debian-stretch-makepasswd --verbose --cleanup
+     script: ./unittest.sh --build debian-stretch-makepasswd --verbose --cleanup
    - stage: test
      name: "OpenSSH"
-     script: bash ./unittest.sh --build debian-stretch-openssh --verbose --cleanup
+     script: ./unittest.sh --build debian-stretch-openssh --verbose --cleanup
    - stage: test
      name: "NodeJS"
-     script: bash ./unittest.sh --build debian-stretch-nodevnc --tag=latest --verbose --cleanup
+     script: ./unittest.sh --build debian-stretch-nodevnc --tag=latest --verbose --cleanup
    - stage: test
      name: "Python 3.5.6"
-     script: bash ./unittest.sh --build debian-stretch-python --tag=3.5.6 --verbose --cleanup --args="version=3.5.6 keyserver=eu.pool.sks-keyservers.net"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.5.6 --verbose --cleanup --args="version=3.5.6 keyserver=eu.pool.sks-keyservers.net"
    - stage: test
      name: "Python 3.6.8"
-     script: bash ./unittest.sh --build debian-stretch-python --tag=3.6.8 --verbose --cleanup --args="version=3.6.8 keyserver=eu.pool.sks-keyservers.net"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.6.8 --verbose --cleanup --args="version=3.6.8 keyserver=eu.pool.sks-keyservers.net"
    - stage: test
      name: "Python 3.7.2"
-     script: bash ./unittest.sh --build debian-stretch-python --tag=3.7.2 --verbose --cleanup --args="version=3.7.2 keyserver=eu.pool.sks-keyservers.net"
+     script: ./unittest.sh --build debian-stretch-python --tag=3.7.2 --verbose --cleanup --args="version=3.7.2 keyserver=eu.pool.sks-keyservers.net"
 
 
 # only execute the following instructions in

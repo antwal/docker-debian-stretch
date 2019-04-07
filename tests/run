@@ -74,6 +74,7 @@ function oneTimeSetUp() {
     fi
 
     # Build image
+    echo "Docker Build Options: ${buildOptions[@]}"
     if ! docker build "${buildOptions[@]}" "$buildDir"; then
         echo "Build failed"
         exit 1

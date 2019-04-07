@@ -13,8 +13,7 @@ ENV LANG C.UTF-8
 
 ARG version
 ARG keyserver
-# Default version is 3.5.6 on build
-ENV PYTHON_VERSION=${version:-"3.5.6"}
+ENV PYTHON_VERSION=$version
 ENV KEY_SERVER=${keyserver:-"ipv4.pool.sks-keyservers.net"}
 
 # if this is called "PIP_VERSION", pip explodes with "ValueError: invalid truth value '<VERSION>'"

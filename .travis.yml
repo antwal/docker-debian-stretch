@@ -16,7 +16,7 @@ before_install:
   - ./.travis/before_install.sh
 
 install:
-  - chdmod a+x ./.travis/install.sh
+  - chmod a+x ./.travis/install.sh
   - ./.travis/install.sh
 
 # script:

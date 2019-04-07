@@ -24,13 +24,6 @@ update-rc.d -f mountkernfs.sh remove
 apt-get clean
 rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# ENV PYTHON_VERSION 3.7.2
-# ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
-# ENV PYTHON_VERSION 3.5.6
-# ENV GPG_KEY 97FC712E4C024BBEA48A61ED3A5CA953F73C700D
-# ENV PYTHON_VERSION 3.6.8
-# ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
-
 if [[ "$PYTHON_VERSION" == "3.5.6" ]]; then
     log "Python 3.5.6 Version!"
     export GPG_KEY=97FC712E4C024BBEA48A61ED3A5CA953F73C700D
@@ -87,12 +80,7 @@ wget -O python.tar.xz "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]
 wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc"
 
 export GNUPGHOME="$(mktemp -d)"
-
-if [ -z "$KEY_SERVER" ]; then
-    export GPG_SERVER="eu.pool.sks-keyservers.net"
-else
-    export GPG_SERVER="$KEY_SERVER"
-fi
+export GPG_SERVER="$KEY_SERVER"
 
 gpg --batch --keyserver "$GPG_SERVER" --recv-keys "$GPG_KEY"
 gpg --batch --verify python.tar.xz.asc python.tar.xz

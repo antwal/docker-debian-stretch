@@ -20,7 +20,7 @@ install:
   - ./.travis/install.sh
 
 before_script:
-  - chmod a+x ./unitest.sh
+  - chmod a+x ./unittest.sh
 
 # script:
 #   - chmod a+x ./unitest.sh
